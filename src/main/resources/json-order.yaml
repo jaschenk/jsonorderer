@@ -1,0 +1,45 @@
+# Ordering rules for the meter-reading payload.
+#
+# Path grammar
+#   $              root object / array
+#   $.a.b          key b inside key a
+#   $.a[]          each element of array a
+#   $.a[].b        key b inside each element of array a
+#   $.*            any single key / element
+#   $.**.address   an "address" object at ANY depth
+#
+# Rule fields
+#   keys          explicit key order for objects (unlisted keys follow per `unlistedKeys`)
+#   unlistedKeys  alphabetical | original   (per-rule override of defaults)
+#   sortBy        key, or list of keys (tie-breakers), to sort an array of objects; dotted paths allowed
+#   direction     asc | desc  (applies to sortBy)
+#   sortElements  true/false  -> sort a scalar array by value
+
+defaults:
+  unlistedKeys: alphabetical
+  caseInsensitive: false
+  sortScalarArrays: false
+
+rules:
+  - path: "$"
+    keys: [meterId, serviceAddress, registers, readings, tags]
+
+  - path: "$.**.serviceAddress"
+    keys: [line1, line2, city, postcode]
+
+  - path: "$.registers"
+    sortBy: registerId
+
+  - path: "$.registers[]"
+    keys: [registerId, unit, multiplier]
+
+  - path: "$.readings"
+    sortBy: [timestamp, registerId]
+    direction: desc
+
+  - path: "$.readings[]"
+    keys: [timestamp, registerId, value]
+    unlistedKeys: alphabetical
+
+  - path: "$.tags"
+    sortElements: true
